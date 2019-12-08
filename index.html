@@ -6,75 +6,73 @@
 	</head>
 
 	<body>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.js"></script>
+        <script src="js/three.min.js"></script>
 		<script>
 
-			var container, stats;
-
-			var mesh, camera, scene, renderer;
-			var helper;
-
-			var mouseX = 0, mouseY = 0;
+			var camera, scene, box, renderer;	// init(), animate()両方で使うのでグローバルスコープで定義
 
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
-
-			var clock = new THREE.Clock();
 
 			init();
 			animate();
 
 			function init() {
 
-				container = document.createElement( 'div' );
-				document.body.appendChild( container );
+				container = document.createElement('div');	// 描写するdomを作成
+				document.body.appendChild(container);
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.z = 30;
+				// camera
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );	// カメラの画角などを設定
+				camera.position.z = +1000;	// カメラの位置を指定
 
 				// scene
-
 				scene = new THREE.Scene();
 
-				var ambient = new THREE.AmbientLight( 0x888888 );
+				// box
+				var geometry = new THREE.BoxGeometry(400, 400, 400);
+      			var material = new THREE.MeshNormalMaterial();
+      			box = new THREE.Mesh(geometry, material);
+      			scene.add(box);
+
+				// ambient ＆ light
+				var ambient = new THREE.AmbientLight(0x666666, 1.5);
 				scene.add( ambient );
 
-				var directionalLight = new THREE.DirectionalLight( 0x666666 );
-				directionalLight.position.set( -1, 1, 1 ).normalize();
+				var directionalLight = new THREE.DirectionalLight(0x887766, 1);
+				directionalLight.position.set(- 1, 1, 1).normalize();
 				scene.add( directionalLight );
 
 				// renderer
+				renderer = new THREE.WebGLRenderer({ antialias: true });
+				renderer.setPixelRatio(window.devicePixelRatio);
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.setClearColor(new THREE.Color(0xffffff));
+				container.appendChild(renderer.domElement);	// 上で作成したdomに描写
 
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.setClearColor( new THREE.Color( 0xffffff ) );
-				container.appendChild( renderer.domElement );
+				// other
+				document.addEventListener('mousemove', onDocumentMouseMove, false);
+				window.addEventListener('resize', onWindowResize, false);
+			}
 
+			function onDocumentMouseMove(event) {
+				mouseX = (event.clientX - windowHalfX) / 2;
+				mouseY = (event.clientY - windowHalfY) / 2;
 			}
 
 			function onWindowResize() {
-
-				windowHalfX = window.innerWidth / 2;
-				windowHalfY = window.innerHeight / 2;
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
+				renderer.setSize(window.innerWidth, window.innerHeight);
 			}
 
-			function onDocumentMouseMove( event ) {
-
-				mouseX = ( event.clientX - windowHalfX ) / 2;
-				mouseY = ( event.clientY - windowHalfY ) / 2;
-
-			}
-
-			//
-
+			// animation
 			function animate() {
+
+				// 箱を回転させる
+				/*window.document.onkeydown = function(event){
+					if (event.key === 'Enter') box.rotation.x += 0.01;
+				};*/
 
 				requestAnimationFrame( animate );
 				render();
@@ -82,15 +80,7 @@
 			}
 
 			function render() {
-
-				camera.lookAt( scene.position );
-
-				if ( mesh ) {
-
-					helper.animate( clock.getDelta() );
-					helper.render( scene, camera );
-
-				}
+				renderer.render(scene, camera)
 
 			}
 
